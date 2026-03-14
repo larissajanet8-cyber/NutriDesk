@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NutriDesk</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-dark: #085041; --green-mid: #0F6E56; --green: #1D9E75;
+      --green-light: #5DCAA5; --green-pale: #E1F5EE;
+      --blue: #378ADD; --blue-pale: #E6F1FB;
+      --amber: #EF9F27; --amber-pale: #FAEEDA;
+      --pink: #D4537E; --pink-pale: #FBEAF0;
+      --purple: #534AB7; --purple-pale: #EEEDFE;
+      --gray-900: #2C2C2A; --gray-600: #5F5E5A; --gray-400: #888780;
+      --gray-100: #F4F6F3; --gray-50: #FAFAF9; --white: #fff;
+      --border: #E0E4DF; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: var(--gray-900); font-size: 14px; }
+
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: flex; }
+
+    /* LOGIN */
+    #page-login { min-height: 100vh; align-items: center; justify-content: center; background: var(--gray-100); }
+    .login-card { background: var(--white); border-radius: var(--r-xl); padding: 2.5rem; width: 380px; border: 0.5px solid var(--border); box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+    .login-logo { font-size: 28px; font-weight: 600; color: var(--green-dark); text-align: center; margin-bottom: 4px; }
+    .login-logo span { color: var(--green); }
+    .login-sub { text-align: center; color: var(--gray-400); font-size: 13px; margin-bottom: 2rem; }
+    .login-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border: 0.5px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+    .login-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer; color: var(--gray-400); background: var(--white); border: none; font-family: inherit; transition: all 0.15s; }
+    .login-tab.active { background: var(--green); color: #fff; font-weight: 500; }
+
+    /* APP LAYOUT */
+    #page-app { min-height: 100vh; }
+    .app-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; background: var(--green-dark); display: flex; flex-direction: column; padding: 1.25rem 1rem; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+    .sidebar-logo { font-size: 20px; font-weight: 600; color: #fff; padding: 0.25rem 0 1.5rem 0.5rem; letter-spacing: -0.5px; }
+    .sidebar-logo span { color: var(--green-light); }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-md); font-size: 13px; color: rgba(255,255,255,0.6); text-decoration: none; cursor: pointer; transition: all 0.15s; margin-bottom: 2px; border: none; background: none; font-family: inherit; width: 100%; text-align: left; }
+    .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-link.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 500; }
+    .sidebar-spacer { flex: 1; }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); background: rgba(255,255,255,0.1); margin-bottom: 6px; }
+    .sidebar-user-name { font-size: 13px; color: #fff; font-weight: 500; }
+    .sidebar-user-role { font-size: 11px; color: var(--green-light); }
+    .main-content { margin-left: 220px; flex: 1; padding: 1.75rem 2rem; }
+
+    /* SECTIONS */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* CARDS */
+    .card { background: var(--white); border-radius: var(--r-lg); border: 0.5px solid var(--border); padding: 1.25rem 1.5rem; }
+    .card-title { font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 1rem; }
+
+    /* METRICS */
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.25rem; }
+    .metric-card { border-radius: var(--r-lg); padding: 1.1rem 1.25rem; }
+    .mc-green { background: var(--green); } .mc-blue { background: var(--blue); }
+    .mc-purple { background: var(--purple); } .mc-orange { background: var(--amber); }
+    .metric-label { font-size: 11px; color: rgba(255,255,255,0.75); margin-bottom: 4px; font-weight: 500; }
+    .metric-value { font-size: 26px; font-weight: 600; color: #fff; line-height: 1; }
+    .metric-sub { font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 4px; }
+
+    /* PAGE HEADER */
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+    .page-title { font-size: 20px; font-weight: 600; color: var(--green-dark); }
+    .page-sub { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--r-md); font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green-mid); }
+    .btn-secondary { background: var(--white); color: var(--gray-900); border: 0.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--gray-100); }
+    .btn-danger { background: #FEE; color: #A32D2D; border: 0.5px solid #F7C1C1; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    /* BADGES */
+    .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 9px; border-radius: 20px; }
+    .badge-green { background: var(--green-pale); color: var(--green-mid); }
+    .badge-blue { background: var(--blue-pale); color: #185FA5; }
+    .badge-amber { background: var(--amber-pale); color: #854F0B; }
+    .badge-pink { background: var(--pink-pale); color: #993556; }
+    .badge-purple { background: var(--purple-pale); color: var(--purple); }
+
+    /* AVATAR */
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+
+    /* FORMS */
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-600); margin-bottom: 5px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 9px 12px; border: 0.5px solid var(--border); border-radius: var(--r-md); font-size: 13px; font-family: inherit; color: var(--gray-900); background: var(--white); outline: none; transition: border-color 0.15s; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--green); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    /* TABLE */
+    .table { width: 100%; border-collapse: collapse; }
+    .table th { font-size: 11px; font-weight: 500; color: var(--gray-400); text-align: left; padding: 8px 12px; border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+    .table td { padding: 11px 12px; border-bottom: 0.5px solid var(--border); font-size: 13px; vertical-align: middle; }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr:hover td { background: var(--gray-50); }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--white); border-radius: var(--r-xl); padding: 1.75rem; width: 480px; max-width: 95vw; transform: translateY(10px); transition: transform 0.2s; }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .modal-title { font-size: 16px; font-weight: 600; color: var(--green-dark); }
+    .modal-close { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--gray-400); line-height: 1; }
+
+    /* ALERT */
+    .alert { padding: 10px 14px; border-radius: var(--r-md); font-size: 13px; margin-bottom: 1rem; }
+    .alert-error { background: #FEE; color: #A32D2D; border: 0.5px solid #F7C1C1; }
+    .alert-success { background: var(--green-pale); color: var(--green-mid); border: 0.5px solid #9FE1CB; }
+
+    /* UTILS */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .text-muted { color: var(--gray-400); font-size: 12px; }
+    .empty-state { text-align: center; padding: 2.5rem; color: var(--gray-400); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div id="page-login" class="page active">
+  <div class="login-card">
+    <div class="login-logo">Nutri<span>Desk</span></div>
+    <p class="login-sub">Tu consultorio digital</p>
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
+      <button class="login-tab" id="tab-register" onclick="switchTab('register')">Registrarse</button>
+    </div>
+    <div id="login-alert"></div>
+
+    <!-- Login form -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="login-email" class="form-input" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" id="login-password" class="form-input" placeholder="••••••••" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" id="btn-login">Iniciar sesión</button>
+    </div>
+
+    <!-- Register form -->
+    <div id="form-register" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input type="text" id="reg-name" class="form-input" placeholder="Ej: Dra. Laura Sánchez" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="reg-email" class="form-input" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" id="reg-password" class="form-input" placeholder="Mínimo 6 caracteres" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" id="btn-register">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP PAGE ═══════════════ -->
+<div id="page-app" class="page">
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">Nutri<span>Desk</span></div>
+      <button class="nav-link active" id="nav-dashboard" onclick="showSection('dashboard')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-link" id="nav-patients" onclick="showSection('patients')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Pacientes
+      </button>
+      <button class="nav-link" id="nav-appointments" onclick="showSection('appointments')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Agenda
+      </button>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-user">
+        <div class="avatar" id="sidebar-avatar" style="background:var(--green-light);color:var(--green-dark);width:32px;height:32px;font-size:12px;">--</div>
+        <div>
+          <div class="sidebar-user-name" id="sidebar-name">...</div>
+          <div class="sidebar-user-role">Nutricionista</div>
+        </div>
+      </div>
+      <button class="nav-link" id="btn-logout" style="color:rgba(255,255,255,0.5);">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </nav>
+
+    <!-- Main -->
+    <main class="main-content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="section-dashboard" class="section active">
+        <div class="page-header">
+          <div>
+            <div class="page-title" id="dash-greeting">Buenos días</div>
+            <div class="page-sub" id="dash-date"></div>
+          </div>
+          <button class="btn btn-primary" onclick="showSection('patients')">+ Nuevo paciente</button>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card mc-green"><div class="metric-label">Pacientes activos</div><div class="metric-value" id="m-patients">—</div><div class="metric-sub">en tu consultorio</div></div>
+          <div class="metric-card mc-blue"><div class="metric-label">Citas hoy</div><div class="metric-value" id="m-today">—</div><div class="metric-sub" id="m-today-sub">consultas</div></div>
+          <div class="metric-card mc-purple"><div class="metric-label">Citas esta semana</div><div class="metric-value" id="m-week">—</div><div class="metric-sub">próximos 7 días</div></div>
+          <div class="metric-card mc-orange"><div class="metric-label">Total citas</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">registradas</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="flex-between" style="margin-bottom:1rem;">
+              <div class="card-title" style="margin-bottom:0;">Pacientes recientes</div>
+              <span style="color:var(--green);font-size:12px;cursor:pointer;" onclick="showSection('patients')">Ver todos →</span>
+            </div>
+            <table class="table"><thead><tr><th>Paciente</th><th>Objetivo</th><th>Estado</th></tr></thead>
+            <tbody id="dash-patients"><tr><td colspan="3" class="empty-state">Cargando...</td></tr></tbody></table>
+          </div>
+          <div class="card">
+            <div class="flex-between" style="margin-bottom:1rem;">
+              <div class="card-title" style="margin-bottom:0;">Agenda de hoy</div>
+              <span style="color:var(--green);font-size:12px;cursor:pointer;" onclick="showSection('appointments')">Ver agenda →</span>
+            </div>
+            <div id="dash-agenda"><p class="empty-state">Cargando...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PATIENTS ── -->
+      <div id="section-patients" class="section">
+        <div class="page-header">
+          <div><div class="page-title">Pacientes</div><div class="page-sub">Gestioná tu lista de pacientes</div></div>
+          <button class="btn btn-primary" onclick="openPatientModal()">+ Nuevo paciente</button>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <input type="text" id="patient-search" class="form-input" placeholder="Buscar por nombre..." style="max-width:300px;" oninput="filterPatients()" />
+        </div>
+        <div class="card" style="padding:0;">
+          <table class="table">
+            <thead><tr><th style="padding-left:1.5rem;">Paciente</th><th>Edad</th><th>Objetivo</th><th>Peso inicial</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="patients-tbody"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── APPOINTMENTS ── -->
+      <div id="section-appointments" class="section">
+        <div class="page-header">
+          <div><div class="page-title">Agenda</div><div class="page-sub">Gestioná tus citas y consultas</div></div>
+          <button class="btn btn-primary" onclick="openApptModal()">+ Nueva cita</button>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
+          <input type="date" id="appt-filter-date" class="form-input" style="width:auto;" oninput="filterAppts()" />
+          <button class="btn btn-secondary btn-sm" onclick="filterToday()">Hoy</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearApptFilter()">Ver todas</button>
+        </div>
+        <div class="card" style="padding:0;">
+          <table class="table">
+            <thead><tr><th style="padding-left:1.5rem;">Fecha</th><th>Hora</th><th>Paciente</th><th>Tipo</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="appts-tbody"><tr><td colspan="6" class="empty-state">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════ PATIENT MODAL ═══════════ -->
+<div class="modal-overlay" id="patient-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="patient-modal-title">Nuevo paciente</div>
+      <button class="modal-close" onclick="closePatientModal()">×</button>
+    </div>
+    <div id="patient-alert"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="p-name" class="form-input" placeholder="Ej: Laura Méndez" /></div>
+      <div class="form-group"><label class="form-label">Edad</label><input type="number" id="p-age" class="form-input" placeholder="32" /></div>
+      <div class="form-group"><label class="form-label">Objetivo</label>
+        <select id="p-goal" class="form-select"><option value="">Seleccionar...</option><option>Pérdida de peso</option><option>Masa muscular</option><option>Mantenimiento</option><option>Diabetes tipo 2</option><option>Alimentación deportiva</option><option>Vegetariano/vegano</option><option>Otro</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Peso inicial (kg)</label><input type="number" id="p-weight" class="form-input" placeholder="75.5" step="0.1" /></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" id="p-phone" class="form-input" placeholder="+595 981 000000" /></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="p-email" class="form-input" placeholder="paciente@email.com" /></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea id="p-notes" class="form-textarea" placeholder="Alergias, restricciones..."></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closePatientModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-patient" onclick="savePatient()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APPOINTMENT MODAL ═══════════ -->
+<div class="modal-overlay" id="appt-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="appt-modal-title">Nueva cita</div>
+      <button class="modal-close" onclick="closeApptModal()">×</button>
+    </div>
+    <div id="appt-alert"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Paciente *</label>
+        <select id="a-patient" class="form-select"><option value="">Seleccionar...</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select id="a-type" class="form-select"><option>Primera consulta</option><option>Seguimiento</option><option>Control mensual</option><option>Control de peso</option><option>Entrega de plan</option><option>Otro</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Fecha *</label><input type="date" id="a-date" class="form-input" /></div>
+      <div class="form-group"><label class="form-label">Hora *</label><input type="time" id="a-time" class="form-input" /></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea id="a-notes" class="form-textarea" placeholder="Observaciones..."></textarea></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeApptModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-appt" onclick="saveAppt()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ FIREBASE + APP LOGIC ═══════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, push, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAf7EUWreWP97HRVEzOa_npDuk54GVttE0",
+  authDomain: "nutridesk-1e645.firebaseapp.com",
+  databaseURL: "https://nutridesk-1e645-default-rtdb.firebaseio.com",
+  projectId: "nutridesk-1e645",
+  storageBucket: "nutridesk-1e645.firebasestorage.app",
+  messagingSenderId: "890245728337",
+  appId: "1:890245728337:web:76c1482c4f60730bfe5070"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// ── STATE ──
+let uid = null;
+let allPatients = [];
+let allAppts = [];
+let editingPatientId = null;
+let editingApptId = null;
+const todayStr = new Date().toISOString().slice(0,10);
+
+const avatarColors = [
+  {bg:"#5DCAA5",tc:"#04342C"},{bg:"#378ADD",tc:"#042C53"},
+  {bg:"#EF9F27",tc:"#412402"},{bg:"#D4537E",tc:"#4B1528"},
+  {bg:"#7F77DD",tc:"#26215C"},{bg:"#1D9E75",tc:"#085041"}
+];
+
+function initials(n="") { return n.split(" ").map(w=>w[0]||"").join("").slice(0,2).toUpperCase() || "?"; }
+function fmt(d) { if(!d) return "—"; const [y,m,day]=d.split("-"); return `${day}/${m}/${y}`; }
+
+// ── AUTH STATE ──
+onAuthStateChanged(auth, user => {
+  if (user) {
+    uid = user.uid;
+    const name = user.displayName || user.email;
+    document.getElementById("sidebar-name").textContent = name.split(" ").slice(0,2).join(" ");
+    document.getElementById("sidebar-avatar").textContent = initials(name);
+    const now = new Date();
+    const h = now.getHours();
+    document.getElementById("dash-greeting").textContent = `${h<12?"Buenos días":h<19?"Buenas tardes":"Buenas noches"}, ${name.split(" ")[0]}`;
+    document.getElementById("dash-date").textContent = now.toLocaleDateString("es-PY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    showPage("app");
+    loadData();
+  } else {
+    showPage("login");
+  }
+});
+
+function loadData() {
+  // Patients
+  onValue(ref(db,`users/${uid}/patients`), snap => {
+    const d = snap.val();
+    allPatients = d ? Object.entries(d).map(([id,v])=>({id,...v})) : [];
+    renderPatients();
+    renderDashPatients();
+    updatePatientSelect();
+    updateMetrics();
+  });
+  // Appointments
+  onValue(ref(db,`users/${uid}/appointments`), snap => {
+    const d = snap.val();
+    allAppts = d ? Object.entries(d).map(([id,v])=>({id,...v})) : [];
+    renderAppts();
+    renderDashAgenda();
+    updateMetrics();
+  });
+}
+
+// ── METRICS ──
+function updateMetrics() {
+  document.getElementById("m-patients").textContent = allPatients.length;
+  const todayA = allAppts.filter(a=>a.date===todayStr);
+  document.getElementById("m-today").textContent = todayA.length;
+  document.getElementById("m-today-sub").textContent = todayA.length===1?"consulta hoy":"consultas hoy";
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
+  document.getElementById("m-week").textContent = allAppts.filter(a=>a.date>=todayStr && new Date(a.date)<=weekEnd).length;
+  document.getElementById("m-total").textContent = allAppts.length;
+}
+
+// ── DASHBOARD ──
+function renderDashPatients() {
+  const tbody = document.getElementById("dash-patients");
+  const list = [...allPatients].reverse().slice(0,5);
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="3" class="empty-state">Sin pacientes aún.</td></tr>`; return; }
+  tbody.innerHTML = list.map((p,i) => {
+    const c = avatarColors[i%avatarColors.length];
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;">
+        <div class="avatar" style="background:${c.bg};color:${c.tc};width:30px;height:30px;font-size:11px;">${initials(p.name)}</div>
+        <div><div style="font-weight:500;">${p.name}</div><div class="text-muted">${p.age?p.age+" años":""}</div></div>
+      </div></td>
+      <td>${p.goal||"—"}</td>
+      <td><span class="badge badge-green">Activo</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderDashAgenda() {
+  const el = document.getElementById("dash-agenda");
+  const list = allAppts.filter(a=>a.date===todayStr).sort((a,b)=>a.time.localeCompare(b.time));
+  const pills = ["badge-green","badge-blue","badge-amber","badge-pink","badge-purple"];
+  if (!list.length) { el.innerHTML=`<p class="empty-state">Sin citas para hoy.</p>`; return; }
+  el.innerHTML = list.map((a,i)=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid var(--border);">
+      <span class="badge ${pills[i%pills.length]}" style="padding:4px 10px;font-size:12px;white-space:nowrap;">${a.time}</span>
+      <div><div style="font-size:13px;font-weight:500;">${a.patientName||"Paciente"}</div><div class="text-muted">${a.type||"Consulta"}</div></div>
+    </div>`).join("");
+}
+
+// ── PATIENTS TABLE ──
+function renderPatients(list = allPatients) {
+  const tbody = document.getElementById("patients-tbody");
+  const sorted = [...list].reverse();
+  if (!sorted.length) { tbody.innerHTML=`<tr><td colspan="6" class="empty-state">Sin pacientes. ¡Agregá el primero!</td></tr>`; return; }
+  tbody.innerHTML = sorted.map((p,i)=>{
+    const c = avatarColors[i%avatarColors.length];
+    return `<tr>
+      <td style="padding-left:1.5rem;"><div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="background:${c.bg};color:${c.tc};font-size:11px;width:32px;height:32px;">${initials(p.name)}</div>
+        <div><div style="font-weight:500;">${p.name}</div><div class="text-muted">${p.phone||p.email||""}</div></div>
+      </div></td>
+      <td>${p.age?p.age+" años":"—"}</td>
+      <td>${p.goal?`<span class="badge badge-green">${p.goal}</span>`:"—"}</td>
+      <td>${p.weight?p.weight+" kg":"—"}</td>
+      <td class="text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes||"—"}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="btn btn-secondary btn-sm" onclick="editPatient('${p.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePatient('${p.id}','${p.name}')">Eliminar</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+window.filterPatients = () => {
+  const q = document.getElementById("patient-search").value.toLowerCase();
+  renderPatients(allPatients.filter(p=>p.name.toLowerCase().includes(q)));
+};
+
+// ── APPOINTMENTS TABLE ──
+function renderAppts(list = allAppts) {
+  const tbody = document.getElementById("appts-tbody");
+  const sorted = [...list].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const typeBadge = {"Primera consulta":"badge-blue","Seguimiento":"badge-green","Control mensual":"badge-amber","Control de peso":"badge-purple","Entrega de plan":"badge-pink"};
+  if (!sorted.length) { tbody.innerHTML=`<tr><td colspan="6" class="empty-state">Sin citas.</td></tr>`; return; }
+  tbody.innerHTML = sorted.map(a=>`<tr>
+    <td style="padding-left:1.5rem;"><div style="font-weight:500;">${fmt(a.date)}</div>${a.date===todayStr?'<span class="badge badge-green" style="font-size:9px;">Hoy</span>':''}</td>
+    <td><span style="font-weight:500;color:var(--green-mid);">${a.time||"—"}</span></td>
+    <td>${a.patientName||"—"}</td>
+    <td><span class="badge ${typeBadge[a.type]||"badge-green"}">${a.type||"Consulta"}</span></td>
+    <td class="text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.notes||"—"}</td>
+    <td><div style="display:flex;gap:6px;">
+      <button class="btn btn-secondary btn-sm" onclick="editAppt('${a.id}')">Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteApptRow('${a.id}')">Eliminar</button>
+    </div></td>
+  </tr>`).join("");
+}
+
+window.filterAppts = () => { const d=document.getElementById("appt-filter-date").value; renderAppts(d?allAppts.filter(a=>a.date===d):allAppts); };
+window.filterToday = () => { document.getElementById("appt-filter-date").value=todayStr; renderAppts(allAppts.filter(a=>a.date===todayStr)); };
+window.clearApptFilter = () => { document.getElementById("appt-filter-date").value=""; renderAppts(); };
+
+// ── PATIENT SELECT ──
+function updatePatientSelect() {
+  const sel = document.getElementById("a-patient");
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">Seleccionar paciente...</option>` +
+    allPatients.map(p=>`<option value="${p.id}" data-name="${p.name}">${p.name}</option>`).join("");
+  if (cur) sel.value = cur;
+}
+
+// ── PATIENT MODAL ──
+window.openPatientModal = () => {
+  editingPatientId = null;
+  document.getElementById("patient-modal-title").textContent = "Nuevo paciente";
+  document.getElementById("btn-save-patient").textContent = "Guardar";
+  clearPatientForm();
+  document.getElementById("patient-modal").classList.add("open");
+};
+window.closePatientModal = () => { document.getElementById("patient-modal").classList.remove("open"); clearPatientForm(); };
+document.getElementById("patient-modal").addEventListener("click", e => { if(e.target===document.getElementById("patient-modal")) window.closePatientModal(); });
+
+function clearPatientForm() {
+  ["p-name","p-age","p-goal","p-weight","p-phone","p-email","p-notes"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("patient-alert").innerHTML="";
+}
+
+window.savePatient = async () => {
+  const name = document.getElementById("p-name").value.trim();
+  if (!name) { document.getElementById("patient-alert").innerHTML=`<div class="alert alert-error">El nombre es obligatorio.</div>`; return; }
+  const data = {
+    name, age: document.getElementById("p-age").value||null,
+    goal: document.getElementById("p-goal").value||null, weight: document.getElementById("p-weight").value||null,
+    phone: document.getElementById("p-phone").value.trim()||null, email: document.getElementById("p-email").value.trim()||null,
+    notes: document.getElementById("p-notes").value.trim()||null, active: true
+  };
+  const btn = document.getElementById("btn-save-patient");
+  btn.textContent="Guardando..."; btn.disabled=true;
+  try {
+    if (editingPatientId) { await update(ref(db,`users/${uid}/patients/${editingPatientId}`),data); }
+    else { data.createdAt=Date.now(); await push(ref(db,`users/${uid}/patients`),data); }
+    window.closePatientModal();
+  } catch(e) { document.getElementById("patient-alert").innerHTML=`<div class="alert alert-error">Error al guardar.</div>`; }
+  btn.textContent="Guardar"; btn.disabled=false;
+};
+
+window.editPatient = id => {
+  const p = allPatients.find(x=>x.id===id); if(!p) return;
+  editingPatientId = id;
+  document.getElementById("patient-modal-title").textContent="Editar paciente";
+  document.getElementById("btn-save-patient").textContent="Actualizar";
+  document.getElementById("p-name").value=p.name||""; document.getElementById("p-age").value=p.age||"";
+  document.getElementById("p-goal").value=p.goal||""; document.getElementById("p-weight").value=p.weight||"";
+  document.getElementById("p-phone").value=p.phone||""; document.getElementById("p-email").value=p.email||"";
+  document.getElementById("p-notes").value=p.notes||"";
+  document.getElementById("patient-modal").classList.add("open");
+};
+
+window.deletePatient = async (id, name) => {
+  if (!confirm(`¿Eliminár a ${name}?`)) return;
+  await remove(ref(db,`users/${uid}/patients/${id}`));
+};
+
+// ── APPT MODAL ──
+window.openApptModal = () => {
+  editingApptId = null;
+  document.getElementById("appt-modal-title").textContent = "Nueva cita";
+  document.getElementById("btn-save-appt").textContent = "Guardar";
+  clearApptForm();
+  document.getElementById("a-date").value = todayStr;
+  document.getElementById("appt-modal").classList.add("open");
+};
+window.closeApptModal = () => { document.getElementById("appt-modal").classList.remove("open"); clearApptForm(); };
+document.getElementById("appt-modal").addEventListener("click", e => { if(e.target===document.getElementById("appt-modal")) window.closeApptModal(); });
+
+function clearApptForm() {
+  ["a-patient","a-date","a-time","a-notes"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("appt-alert").innerHTML="";
+}
+
+window.saveAppt = async () => {
+  const patientId = document.getElementById("a-patient").value;
+  const date = document.getElementById("a-date").value;
+  const time = document.getElementById("a-time").value;
+  if (!patientId||!date||!time) { document.getElementById("appt-alert").innerHTML=`<div class="alert alert-error">Paciente, fecha y hora son obligatorios.</div>`; return; }
+  const sel = document.getElementById("a-patient");
+  const patientName = sel.options[sel.selectedIndex].dataset.name;
+  const data = { patientId, patientName, date, time, type: document.getElementById("a-type").value, notes: document.getElementById("a-notes").value.trim()||null };
+  const btn = document.getElementById("btn-save-appt");
+  btn.textContent="Guardando..."; btn.disabled=true;
+  try {
+    if (editingApptId) { await update(ref(db,`users/${uid}/appointments/${editingApptId}`),data); }
+    else { data.createdAt=Date.now(); await push(ref(db,`users/${uid}/appointments`),data); }
+    window.closeApptModal();
+  } catch(e) { document.getElementById("appt-alert").innerHTML=`<div class="alert alert-error">Error al guardar.</div>`; }
+  btn.textContent="Guardar"; btn.disabled=false;
+};
+
+window.editAppt = id => {
+  const a = allAppts.find(x=>x.id===id); if(!a) return;
+  editingApptId = id;
+  document.getElementById("appt-modal-title").textContent="Editar cita";
+  document.getElementById("btn-save-appt").textContent="Actualizar";
+  document.getElementById("a-patient").value=a.patientId||"";
+  document.getElementById("a-type").value=a.type||"Primera consulta";
+  document.getElementById("a-date").value=a.date||"";
+  document.getElementById("a-time").value=a.time||"";
+  document.getElementById("a-notes").value=a.notes||"";
+  document.getElementById("appt-modal").classList.add("open");
+};
+
+window.deleteApptRow = async id => {
+  if (!confirm("¿Eliminar esta cita?")) return;
+  await remove(ref(db,`users/${uid}/appointments/${id}`));
+};
+
+// ── LOGIN / REGISTER ──
+document.getElementById("btn-login").addEventListener("click", async () => {
+  const email = document.getElementById("login-email").value.trim();
+  const pw = document.getElementById("login-password").value;
+  if (!email||!pw) return showLoginAlert("Completá todos los campos.","error");
+  const btn = document.getElementById("btn-login");
+  btn.textContent="Ingresando..."; btn.disabled=true;
+  try { await signInWithEmailAndPassword(auth,email,pw); }
+  catch(e) { showLoginAlert("Email o contraseña incorrectos.","error"); btn.textContent="Iniciar sesión"; btn.disabled=false; }
+});
+
+document.getElementById("btn-register").addEventListener("click", async () => {
+  const name = document.getElementById("reg-name").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const pw = document.getElementById("reg-password").value;
+  if (!name||!email||!pw) return showLoginAlert("Completá todos los campos.","error");
+  if (pw.length<6) return showLoginAlert("La contraseña debe tener al menos 6 caracteres.","error");
+  const btn = document.getElementById("btn-register");
+  btn.textContent="Creando..."; btn.disabled=true;
+  try {
+    const cred = await createUserWithEmailAndPassword(auth,email,pw);
+    await updateProfile(cred.user,{displayName:name});
+    await set(ref(db,`users/${cred.user.uid}/profile`),{name,email,createdAt:Date.now()});
+  } catch(e) {
+    const msg = e.code==="auth/email-already-in-use"?"Ese email ya está registrado.":"Error al crear cuenta.";
+    showLoginAlert(msg,"error"); btn.textContent="Crear cuenta"; btn.disabled=false;
+  }
+});
+
+document.getElementById("btn-logout").addEventListener("click", async () => {
+  await signOut(auth);
+});
+
+// Enter key on login
+document.getElementById("login-password").addEventListener("keydown", e => { if(e.key==="Enter") document.getElementById("btn-login").click(); });
+
+function showLoginAlert(msg, type) {
+  document.getElementById("login-alert").innerHTML = `<div class="alert alert-${type==="error"?"error":"success"}">${msg}</div>`;
+}
+
+// ── NAV HELPERS ──
+window.showSection = name => {
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav-link").forEach(l=>l.classList.remove("active"));
+  document.getElementById(`section-${name}`).classList.add("active");
+  document.getElementById(`nav-${name}`).classList.add("active");
+};
+
+window.switchTab = tab => {
+  document.getElementById("form-login").style.display = tab==="login"?"block":"none";
+  document.getElementById("form-register").style.display = tab==="register"?"block":"none";
+  document.getElementById("tab-login").classList.toggle("active", tab==="login");
+  document.getElementById("tab-register").classList.toggle("active", tab==="register");
+  document.getElementById("login-alert").innerHTML="";
+};
+
+function showPage(name) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(`page-${name}`).classList.add("active");
+}
+</script>
+</body>
+</html>
